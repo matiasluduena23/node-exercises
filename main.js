@@ -1,39 +1,41 @@
 const port = 3000,
     http = require('http'),
-    httpStatus = require('http-status-codes'),
+    httpStatusCodes = require('http-status-codes'),
+    router = require('./router'),
     fs = require('fs');
+    plainTextContentType = {
+        "Content-Type": "text/plain"
+    },
+    htmlContentType = {
+        "Content-Type": "text/html"
+    },
+    customReadFile = (file, res) => {
+        fs.readFile(`./${file}`, (errors, data) => {
+            if(errors) console.log("error reading the file...")
+
+            res.end(data);
+        })
+    };
 
 
-http.createServer( (req, res) => {
-    const url = req.url;
+router.get("/", (req,res) => {
+    res.writeHead(httpStatusCodes.OK, plainTextContentType);
+    res.end("INDEX")
+})
 
-    if(url.indexOf(".html") !== -1){
-        res.writeHead(httpStatus.OK, {
-            "Content-Type": "text/html"
-        });
-        custonReadFile(`./view${url}`, res)
+router.get("/index.html", (req,res) => {
+    res.writeHead(httpStatusCodes.OK, htmlContentType);
+    custonReadFile("view/index.html", res)
+})
 
-    }else if(url.indexOf(".js") !== -1){
-        res.writeHead(httpStatus.OK, {
-            "Content-Type": "text/javascript"
-        });
-        custonReadFile(`./public/js${url}`, res)
+router.post("/", (req,res) => {
+    res.writeHead(httpStatusCodes.OK, plainTextContentType);
+    res.end("POSTED")
+})
 
-    }else if(url.indexOf(".css") !== -1){
-        res.writeHead(httpStatus.OK, {
-            "Content-Type": "text/css"
-        });
-        custonReadFile(`./public/css${url}`, res)
 
-    }else if(url.indexOf(".png") !== -1){
-        res.writeHead(httpStatus.OK, {
-            "Content-Type": "image/png"
-        });
-        custonReadFile(`./public/images${url}`, res)
-    }
-    
-}).listen(port)
-console.log('Server listen on port '+ port)
+http.createServer(router.handle).listen(3000);
+console.log('Server listen on port 3000')
 
 
 function custonReadFile(file_path, res){
@@ -50,10 +52,6 @@ function custonReadFile(file_path, res){
     }else {
         sendErrorResponse(res);
     }
-}
-
-const getViewUrl = (url) =>{
-    return `view${url}.html`;
 }
 
 const sendErrorResponse = res => {
